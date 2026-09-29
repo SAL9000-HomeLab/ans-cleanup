@@ -1,0 +1,62 @@
+---
+# roles/netbox_ip_sync/tasks/apply.yml
+#
+# NetBox only references existing tags, so create any missing ones first, then send the new records and
+# the gap-filling updates as one bulk request each.
+
+- name: Look up the sync tags
+  ansible.builtin.uri:
+    url: "{{ _netbox_ip_sync_api }}/api/extras/tags/?name={{ item | urlencode }}"
+    headers: "{{ _netbox_ip_sync_headers }}"
+    validate_certs: "{{ _netbox_ip_sync_verify }}"
+  loop: "{{ netbox_ip_sync_tags }}"
+  register: _netbox_ip_sync_tags
+  delegate_to: localhost
+  run_once: true
+
+- name: Create missing tags
+  ansible.builtin.uri:
+    url: "{{ _netbox_ip_sync_api }}/api/extras/tags/"
+    method: POST
+    headers: "{{ _netbox_ip_sync_headers }}"
+    validate_certs: "{{ _netbox_ip_sync_verify }}"
+    body_format: json
+    body:
+      name: "{{ item.item }}"
+      slug: "{{ item.item | lower | regex_replace('[^a-z0-9_-]+', '-') }}"
+    status_code: 201
+  loop: "{{ _netbox_ip_sync_tags.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: item.json.count | int == 0
+  changed_when: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Create IP address records
+  ansible.builtin.uri:
+    url: "{{ _netbox_ip_sync_api }}/api/ipam/ip-addresses/"
+    method: POST
+    headers: "{{ _netbox_ip_sync_headers }}"
+    validate_certs: "{{ _netbox_ip_sync_verify }}"
+    body_format: json
+    body: "{{ _netbox_ip_sync_plan.create | map(attribute='body') | list }}"
+    status_code: 201
+  when: _netbox_ip_sync_plan.create | length > 0
+  changed_when: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Fill in existing IP address records
+  ansible.builtin.uri:
+    url: "{{ _netbox_ip_sync_api }}/api/ipam/ip-addresses/"
+    method: PATCH
+    headers: "{{ _netbox_ip_sync_headers }}"
+    validate_certs: "{{ _netbox_ip_sync_verify }}"
+    body_format: json
+    body: "{{ _netbox_ip_sync_plan.fill | map(attribute='body') | list }}"
+    status_code: 200
+  when: _netbox_ip_sync_plan.fill | length > 0
+  changed_when: true
+  delegate_to: localhost
+  run_once: true
