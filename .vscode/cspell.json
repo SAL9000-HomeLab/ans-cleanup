@@ -1,0 +1,27 @@
+{
+    "_meta": {
+        "version": "Version of the setting file. Always 0.2",
+        "language": "Current active spelling language",
+        "words": "List of words to be always considered correct",
+        "flagWords": "Words to be always considered incorrect (e.g., 'hte' -> 'the')"
+    },
+    "version": "0.2",
+    "language": "en",
+    "words": [
+        "FQCN",
+        "linkspector",
+        "venv",
+        "Serman",
+        "netbox",
+        "proxmox",
+        "pvesh",
+        "qemu",
+        "ipconfig",
+        "vmid",
+        "dns_name",
+        "SAL9000"
+    ],
+    "flagWords": [
+        "hte"
+    ]
+}

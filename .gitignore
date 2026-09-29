@@ -1,0 +1,11 @@
+# Ansible
+*.retry
+.venv/
+
+# Secrets / local-only config — never commit these
+vars/secret.yml
+secrets.yml
+vault_pass.txt
+.vault_pass*
+extra-vars*.yml
+local/

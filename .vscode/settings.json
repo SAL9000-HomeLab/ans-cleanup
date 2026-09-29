@@ -1,0 +1,14 @@
+{
+    // When enabled, will trim trailing whitespace when you save a file.
+    "files.trimTrailingWhitespace": true,
+    // Adds a visual indicator for the maximum line length.
+    "editor.rulers": [
+        120
+    ],
+    "editor.wordWrapColumn": 120,
+
+    // Ansible specific python configuration
+    "ansible.python.interpreterPath": ".venv/bin/python",
+    "ansible.python.activationScript": ".venv/bin/activate",
+    "ansible.validation.lint.path": ".venv/bin/ansible-lint"
+}

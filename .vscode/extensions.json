@@ -1,0 +1,21 @@
+{
+    "recommendations": [
+        // Ansible Specific
+        "redhat.ansible",
+        "redhat.vscode-yaml",
+        "wholroyd.jinja",
+        "samuelcolvin.jinjahtml",
+
+        // Remote Development (WSL)
+        "ms-vscode-remote.remote-ssh",
+        "ms-vscode-remote.remote-ssh-edit",
+        "ms-vscode.remote-server",
+        "ms-vscode.remote-explorer",
+        "ms-vscode-remote.remote-wsl",
+        "usernamehw.errorlens",
+
+        // General dev extensions
+        "DavidAnson.vscode-markdownlint",
+        "streetsidesoftware.code-spell-checker"
+    ]
+}

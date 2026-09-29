@@ -1,0 +1,46 @@
+---
+name: Linting Validation
+run-name: ${{ github.base_ref }}
+
+on:
+  pull_request:
+    branches:
+      - 'dev'
+      - 'main'
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+      - edited
+
+# Least privilege by default; jobs that need more (the link checker) ask for it.
+permissions:
+  contents: read
+
+# env:
+#   exclude_dirs: ${{ vars.EXCLUDE_DIRS }}
+#   exclude_files: ${{ vars.EXCLUDE_FILES }}
+
+jobs:
+  lint-markdown:
+    uses: SAL9000-HomeLab/shared-actions/.github/workflows/lint-markdown.yml@main
+
+  markdown-link-checker:
+    uses: SAL9000-HomeLab/shared-actions/.github/workflows/markdown-link-checker.yml@main
+    permissions:
+      pull-requests: read
+      contents: read
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
+  lint-yaml:
+    uses: SAL9000-HomeLab/shared-actions/.github/workflows/lint-yaml.yml@main
+
+  # lint-powershell:
+  #   uses: SAL9000-HomeLab/shared-actions/.github/workflows/lint-powershell.yml@main
+  #   with:
+  #     environment: ${{ github.ref_name }}
+  #     exclude_dirs: ${{ vars.exclude_dirs }}
+  #     exclude_files: ${{ vars.exclude_files }}

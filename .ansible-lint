@@ -1,0 +1,6 @@
+---
+# ansible-lint configuration (run by CI via the shared ansible-ci workflow).
+exclude_paths:
+  - .venv/
+  - local/
+  - .github/

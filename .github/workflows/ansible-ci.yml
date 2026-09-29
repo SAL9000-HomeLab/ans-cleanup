@@ -1,0 +1,25 @@
+---
+name: Ansible CI — Fast checks + Molecule + Windows integration
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  run-shared-ansible-ci:
+    uses: SAL9000-HomeLab/shared-actions/.github/workflows/ansible-ci.yml@main
+    with:
+      python_version: '3.11'
+      run_yamllint: true
+      # pass the caller's ref so the shared workflow will check out the correct ref
+      ref: ${{ github.ref }}
+    secrets:
+      # map this repo's GITHUB_TOKEN into the reusable workflow
+      token: ${{ secrets.GITHUB_TOKEN }}
+      WS_ANS_SSH: ${{ secrets.WS_ANS_SSH }}

@@ -1,0 +1,65 @@
+---
+name: Create Release from tag
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: ver
+        run: |
+          TAG=${GITHUB_REF##*/}
+          VERSION=${TAG#v}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog section for this version
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          CHANGELOG="CHANGELOG.md"
+          RELEASE_NOTES="release_notes.md"
+          # Ensure file exists
+          if [ ! -f "$CHANGELOG" ]; then
+            echo "CHANGELOG not found at $CHANGELOG"
+            echo "No release notes available" > $RELEASE_NOTES
+            exit 0
+          fi
+          # Extract the section that starts with "## [VERSION]" until the next "## ["
+          awk -v ver="$VERSION" '
+            BEGIN{found=0}
+            /^## \[/{ if(found && /^## \[/){ exit } }
+            $0 == ("## [" ver "] - " ver) { found=1; print; next }
+            $0 ~ ("^## \\[" ver "\\]") {
+              # matches header like ## [1.2.3] - 2026-02-16  OR ## [1.2.3]
+              found=1; print; next
+            }
+            { if(found) print }
+          ' "$CHANGELOG" > "$RELEASE_NOTES"
+          if [ ! -s "$RELEASE_NOTES" ]; then
+            echo "No changelog section found for version $VERSION, generating fallback notes."
+            echo "Release $VERSION" > "$RELEASE_NOTES"
+            echo "" >> "$RELEASE_NOTES"
+            echo "No changelog section found for this version in $CHANGELOG." >> "$RELEASE_NOTES"
+          fi
+          echo "Release notes prepared in $RELEASE_NOTES"
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.tag }}
+          body_path: release_notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
