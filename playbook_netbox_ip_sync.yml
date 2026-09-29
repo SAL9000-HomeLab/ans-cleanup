@@ -1,0 +1,10 @@
+---
+# Records every Proxmox VM's IP addresses in NetBox. Runs against one node of the cluster (the first
+# host in the proxmox group); any node can read every VM. Reports only, unless netbox_ip_sync_apply
+# is true. See roles/netbox_ip_sync/README.md.
+
+- name: Sync Proxmox VM IP addresses into NetBox
+  hosts: proxmox
+  gather_facts: false
+  roles:
+    - role: netbox_ip_sync

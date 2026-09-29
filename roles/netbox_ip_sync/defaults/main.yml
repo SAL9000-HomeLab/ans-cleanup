@@ -1,0 +1,46 @@
+---
+# roles/netbox_ip_sync/defaults/main.yml
+
+# false: only report what would change. true: create and update NetBox records.
+netbox_ip_sync_apply: false
+
+# NetBox API (no defaults here): supply them from an AWX credential, never commit them. Either
+#   netbox_api_url / netbox_token (optionally netbox_ssl_verify), or the mapping used by proxmox-deploy:
+#   netbox: {api_url: ..., token: ..., ssl_verify: true}
+# Both v1 and v2 (nbt_...) tokens work.
+
+# dns_name for new records and empty ones, in this order:
+#   1. the address's reverse DNS (PTR) name, looked up on the Proxmox node, if it names this VM;
+#   2. the VM name, if it's already fully qualified;
+#   3. "<vm>.<netbox_ip_sync_fallback_domain>", if set (e.g. lab.example.com).
+# If none applies, dns_name is left unset.
+netbox_ip_sync_reverse_dns: true
+netbox_ip_sync_dns_timeout: 3
+netbox_ip_sync_fallback_domain: ""
+
+# description for new records and empty ones. Placeholders: {name}, {vmid}, {node}.
+netbox_ip_sync_description: "Proxmox VM {name}"
+
+# Tags added to new records, and to existing records that lack them (created in NetBox if missing).
+netbox_ip_sync_tags:
+  - proxmox
+
+# Status for new records.
+netbox_ip_sync_status: active
+
+# Regular expressions (Python syntax) matched against VM names; matching VMs are skipped.
+netbox_ip_sync_exclude: []
+
+# Include VM templates (normally they have no address worth recording).
+netbox_ip_sync_include_templates: false
+
+# Fall back to the QEMU guest agent for VMs without a static cloud-init address.
+netbox_ip_sync_guest_agent: true
+netbox_ip_sync_guest_agent_timeout: 10
+
+# Guest interfaces whose addresses are ignored (container bridges, VPNs, ...).
+netbox_ip_sync_exclude_interfaces: >-
+  ^(lo|docker[0-9]*|docker_gwbridge|br-.*|veth.*|virbr.*|cni.*|flannel.*|cali.*|vxlan.*|kube.*|tun.*|tap.*|wg.*|tailscale.*|zt.*)$
+
+# Also record IPv6 addresses.
+netbox_ip_sync_ipv6: false

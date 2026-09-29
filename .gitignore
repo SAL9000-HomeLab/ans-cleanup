@@ -9,3 +9,7 @@ vault_pass.txt
 .vault_pass*
 extra-vars*.yml
 local/
+
+# Python bytecode (embeds local file paths)
+__pycache__/
+*.py[cod]

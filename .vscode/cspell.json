@@ -19,7 +19,22 @@
         "ipconfig",
         "vmid",
         "dns_name",
-        "SAL9000"
+        "SAL9000",
+        "cloudinit",
+        "dhcp",
+        "fstrim",
+        "ipam",
+        "nbt",
+        "VRF",
+        "VRFs",
+        "flannel",
+        "cali",
+        "virbr",
+        "veth",
+        "tailscale",
+        "gwbridge",
+        "VMID",
+        "VMIDs"
     ],
     "flagWords": [
         "hte"

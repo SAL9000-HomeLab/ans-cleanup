@@ -1,0 +1,106 @@
+---
+# roles/netbox_ip_sync/tasks/main.yml
+#
+# Reads every VM's addresses from the Proxmox cluster (through the first host in the play) and makes
+# sure each has an IP address record in NetBox. Reports only, unless netbox_ip_sync_apply is true.
+
+- name: Sync Proxmox VM addresses into NetBox
+  run_once: true
+  block:
+    - name: Resolve NetBox settings
+      ansible.builtin.set_fact:
+        _netbox_ip_sync_api: >-
+          {{ ((netbox | default({})).api_url | default('', true) or netbox_api_url | default('')).rstrip('/') }}
+        _netbox_ip_sync_token: "{{ (netbox | default({})).token | default('', true) or netbox_token | default('') }}"
+        _netbox_ip_sync_verify: >-
+          {{ (netbox | default({})).ssl_verify | default(netbox_ssl_verify | default(true)) | bool }}
+      no_log: true
+
+    - name: Check NetBox settings
+      ansible.builtin.assert:
+        that:
+          - _netbox_ip_sync_api | length > 0
+          - _netbox_ip_sync_token | length > 0
+        fail_msg: >-
+          Set the NetBox URL and token (netbox.api_url / netbox.token, or netbox_api_url / netbox_token
+          from an AWX credential).
+        quiet: true
+
+    - name: Build the NetBox authorization header
+      ansible.builtin.set_fact:
+        # v2 tokens (NetBox 4.5+) look like nbt_<key>.<token> and use Bearer; v1 tokens use Token.
+        _netbox_ip_sync_headers:
+          Authorization: >-
+            {{ ('Bearer ' if _netbox_ip_sync_token.startswith('nbt_') else 'Token ') ~ _netbox_ip_sync_token }}
+          Accept: application/json
+      no_log: true
+
+    - name: Read VM addresses from the Proxmox cluster
+      ansible.builtin.script:
+        cmd: >-
+          proxmox_vm_ips.py
+          --agent-timeout {{ netbox_ip_sync_guest_agent_timeout | int }}
+          --exclude-interfaces {{ netbox_ip_sync_exclude_interfaces | quote }}
+          {{ '--agent' if netbox_ip_sync_guest_agent | bool else '' }}
+          {{ '--include-templates' if netbox_ip_sync_include_templates | bool else '' }}
+          {{ '--ipv6' if netbox_ip_sync_ipv6 | bool else '' }}
+          {{ '--reverse-dns --dns-timeout ' ~ (netbox_ip_sync_dns_timeout | int)
+             if netbox_ip_sync_reverse_dns | bool else '' }}
+        executable: python3
+      register: _netbox_ip_sync_collect
+      changed_when: false
+      check_mode: false
+
+    - name: Work out which addresses to record
+      ansible.builtin.set_fact:
+        _netbox_ip_sync_cluster: "{{ _netbox_ip_sync_collect.stdout | from_json }}"
+        _netbox_ip_sync_found: >-
+          {{ (_netbox_ip_sync_collect.stdout | from_json).vms
+             | netbox_ip_sync_candidates(netbox_ip_sync_exclude, netbox_ip_sync_fallback_domain,
+                                         netbox_ip_sync_description) }}
+
+    - name: Look up each address in NetBox
+      ansible.builtin.uri:
+        url: "{{ _netbox_ip_sync_api }}/api/ipam/ip-addresses/?address={{ item.ip | urlencode }}&limit=50"
+        headers: "{{ _netbox_ip_sync_headers }}"
+        validate_certs: "{{ _netbox_ip_sync_verify }}"
+      loop: "{{ _netbox_ip_sync_found.candidates }}"
+      loop_control:
+        label: "{{ item.ip }} {{ item.vm }}"
+      register: _netbox_ip_sync_lookup
+      delegate_to: localhost
+      check_mode: false
+
+    - name: Plan the NetBox changes
+      ansible.builtin.set_fact:
+        _netbox_ip_sync_plan: >-
+          {{ _netbox_ip_sync_found.candidates
+             | netbox_ip_sync_plan(_netbox_ip_sync_lookup.results | default([]),
+                                   netbox_ip_sync_tags, netbox_ip_sync_status) }}
+
+    - name: Report the plan
+      ansible.builtin.debug:
+        msg:
+          mode: >-
+            {{ 'apply' if netbox_ip_sync_apply | bool
+               else 'report only (set netbox_ip_sync_apply: true to change NetBox)' }}
+          summary: >-
+            {{ _netbox_ip_sync_cluster.vms | length }} VMs, {{ _netbox_ip_sync_found.candidates | length }} addresses:
+            {{ _netbox_ip_sync_plan.create | length }} to create, {{ _netbox_ip_sync_plan.fill | length }} to fill in,
+            {{ _netbox_ip_sync_plan.unchanged | length }} already correct, {{ _netbox_ip_sync_plan.conflicts | length
+            + _netbox_ip_sync_found.duplicates | length }} conflicts,
+            {{ _netbox_ip_sync_found.skipped | length }} VMs skipped
+          create: "{{ _netbox_ip_sync_plan.create | map(attribute='label') | list }}"
+          fill_in: "{{ _netbox_ip_sync_plan.fill | map('netbox_ip_sync_update_label') | list }}"
+          conflicts: >-
+            {{ (_netbox_ip_sync_plan.conflicts + _netbox_ip_sync_found.duplicates)
+               | map('netbox_ip_sync_conflict_label') | list }}
+          skipped_vms: "{{ _netbox_ip_sync_found.skipped | map('netbox_ip_sync_skip_label') | list }}"
+          notes: >-
+            {{ _netbox_ip_sync_found.notes + _netbox_ip_sync_plan.notes + _netbox_ip_sync_cluster.errors }}
+
+    - name: Apply the plan
+      ansible.builtin.include_tasks: apply.yml
+      when:
+        - netbox_ip_sync_apply | bool
+        - (_netbox_ip_sync_plan.create | length > 0) or (_netbox_ip_sync_plan.fill | length > 0)

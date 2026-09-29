@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: Roland Serman
+  description: Record Proxmox VM IP addresses in NetBox (create missing records, fill empty fields)
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm  # Proxmox VE 8
+        - trixie    # Proxmox VE 9
+  galaxy_tags:
+    - netbox
+    - proxmox
+    - ipam
+
+dependencies: []
