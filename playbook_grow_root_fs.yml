@@ -1,0 +1,10 @@
+---
+# Grows each Linux VM's root filesystem into all the space on its virtual disk, e.g. after the disk was
+# made bigger in Proxmox. Runs on the "linux" group unless grow_root_fs_hosts names another group or host
+# pattern. Reports only, unless grow_root_fs_apply is true. See roles/grow_root_fs/README.md.
+
+- name: Grow root filesystems to fill their disks
+  hosts: "{{ grow_root_fs_hosts | default('linux') }}"
+  gather_facts: false
+  roles:
+    - role: grow_root_fs

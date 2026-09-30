@@ -1,0 +1,27 @@
+---
+# roles/grow_root_fs/tasks/main.yml
+# Runs files/grow-root-fs.sh on each host. The script needs only bash and the usual disk tools, not Python.
+
+- name: Grow the root filesystem into the free disk space (report only unless grow_root_fs_apply)
+  ansible.builtin.script:
+    cmd: "grow-root-fs.sh{{ '' if grow_root_fs_apply | bool else ' --check' }}"
+    executable: /bin/bash
+  become: true
+  register: grow_root_fs_result
+  changed_when: grow_root_fs_apply | bool and 'GROW:' in grow_root_fs_result.stdout
+
+- name: Show what grew (or would grow)
+  ansible.builtin.debug:
+    msg: "{{ grow_root_fs_result.stdout_lines | select('match', '(GROW|SKIP|ROOT): ') | list }}"
+
+- name: List the hosts with space to grow into
+  ansible.builtin.debug:
+    msg: >-
+      {{ 'Grew' if grow_root_fs_apply | bool else 'Would grow' }}:
+      {{ ansible_play_hosts
+         | map('extract', hostvars, ['grow_root_fs_result', 'stdout'])
+         | zip(ansible_play_hosts)
+         | selectattr('0', 'search', 'GROW: ')
+         | map(attribute='1')
+         | join(', ') or 'none' }}
+  run_once: true

@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: Roland Serman
+  description: Grow a Linux VM's root filesystem into all the space on its (enlarged) virtual disk
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+        - "10"
+    - name: Ubuntu
+      versions:
+        - noble
+  galaxy_tags:
+    - disk
+    - lvm
+    - proxmox
+
+dependencies: []

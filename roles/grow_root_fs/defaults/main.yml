@@ -1,0 +1,5 @@
+---
+# roles/grow_root_fs/defaults/main.yml
+
+# false: only report what would grow. true: grow the partition, LVM and filesystem.
+grow_root_fs_apply: false
