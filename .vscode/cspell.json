@@ -1,40 +1,48 @@
 {
     "_meta": {
-        "version": "Version of the setting file. Always 0.2",
-        "language": "Current active spelling language",
-        "words": "List of words to be always considered correct",
+        "managed": "Managed by ans-template: change it there and sync. Put this repository's own words in project-words.txt.",
+        "words": "Words shared by every SAL9000-HomeLab Ansible repository",
         "flagWords": "Words to be always considered incorrect (e.g., 'hte' -> 'the')"
     },
     "version": "0.2",
     "language": "en",
+    "dictionaryDefinitions": [
+        {
+            "name": "project-words",
+            "path": "./project-words.txt",
+            "addWords": true
+        }
+    ],
+    "dictionaries": [
+        "project-words"
+    ],
     "words": [
+        "argv",
+        "Bocephus",
+        "dict2items",
+        "divisibleby",
+        "endfor",
+        "endif",
+        "firewalld",
         "FQCN",
+        "gssapi",
+        "items2dict",
+        "keepachangelog",
         "linkspector",
-        "venv",
-        "Serman",
-        "netbox",
-        "proxmox",
-        "pvesh",
-        "qemu",
-        "ipconfig",
-        "vmid",
-        "dns_name",
+        "markdownlint",
+        "noqa",
+        "ntlm",
+        "psrp",
+        "pypsrp",
+        "pywinrm",
+        "rejectattr",
+        "rstrip",
         "SAL9000",
-        "cloudinit",
-        "dhcp",
-        "fstrim",
-        "ipam",
-        "nbt",
-        "VRF",
-        "VRFs",
-        "flannel",
-        "cali",
-        "virbr",
-        "veth",
-        "tailscale",
-        "gwbridge",
-        "VMID",
-        "VMIDs"
+        "selectattr",
+        "Serman",
+        "urlencode",
+        "venv",
+        "yamllint"
     ],
     "flagWords": [
         "hte"

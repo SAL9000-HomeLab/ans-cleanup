@@ -1,4 +1,6 @@
 ---
+# yamllint configuration (run by CI via the shared ansible-ci and lint-yaml workflows).
+# Managed by ans-template: change it there and sync (see ans-template/README.md).
 extends: default
 
 rules:
@@ -23,16 +25,11 @@ rules:
     ignore: |
       .github/workflows/*.yml
 
-
 ignore: |
-  # exact path(s)
-  roles/*/molecule/azure-windows/vault.yml
-  # common vault names anywhere in the repo
-  # **/vault.yml
-  # **/vault.yaml
-  # **/*vault*.yml
-  # **/*vault*.yaml
   .git/
+  .ansible/
   .venv/
+  local/
+  molecule/*/vault.yml
   **/.tox/
   **/site-packages/

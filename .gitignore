@@ -1,15 +1,20 @@
 # Ansible
 *.retry
+.ansible/
 .venv/
 
+# Molecule
+molecule/*/.state
+
+# Python bytecode (embeds local file paths)
+__pycache__/
+*.py[cod]
+
 # Secrets / local-only config — never commit these
+molecule/*/vault.yml
 vars/secret.yml
 secrets.yml
 vault_pass.txt
 .vault_pass*
 extra-vars*.yml
 local/
-
-# Python bytecode (embeds local file paths)
-__pycache__/
-*.py[cod]
