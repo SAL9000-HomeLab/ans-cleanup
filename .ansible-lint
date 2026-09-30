@@ -1,6 +1,11 @@
 ---
 # ansible-lint configuration (run by CI via the shared ansible-ci workflow).
+# Managed by ans-template: change it there and sync (see ans-template/README.md).
 exclude_paths:
+  - .ansible/
   - .venv/
   - local/
   - .github/
+# Molecule scenarios keep their settings in vars.yml; without this it is linted as a playbook.
+kinds:
+  - vars: "**/molecule/*/vars.yml"
