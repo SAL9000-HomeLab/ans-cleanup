@@ -16,3 +16,4 @@ pushing a `vX.Y.Z` tag; the release workflow publishes the matching section.
   NetBox (static cloud-init address, else the guest agent's). Creates missing records, fills in empty fields,
   reports conflicts; report only unless `netbox_ip_sync_apply: true`. `dns_name` comes from the address's
   reverse DNS name, else `netbox_ip_sync_fallback_domain`.
+- Changed: Ansible CI runs on pull requests only, no longer on pushes to `main` (synced from ans-template).
