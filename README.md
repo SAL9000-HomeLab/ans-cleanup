@@ -39,7 +39,7 @@ Run the report first, review the conflicts and skipped VMs, then run apply.
 
 The workflows and lint configs match the other `SAL9000-HomeLab` Ansible repositories:
 
-- **Ansible CI** (`.github/workflows/ansible-ci.yml`), on pushes to `main` and every pull request: `yamllint`,
+- **Ansible CI** (`.github/workflows/ansible-ci.yml`), on every pull request: `yamllint`,
   `ansible-playbook --syntax-check` on each root `playbook*.yml` / `site*.yml`, and `ansible-lint`.
 - **Linting Validation** (`.github/workflows/ci.yml`), on pull requests: markdownlint, linkspector, yamllint.
 
